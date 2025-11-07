@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Lab 1 — Reflected XSS</title></head>
+  <body>
+    <h1>Reflected XSS — Comment Box</h1>
+    <p>Enter a message in the URL param <code>?msg=</code> to see it reflected.</p>
+
+    <form action="/" method="get">
+      <input type="text" name="msg" placeholder="Type a message">
+      <button type="submit">Submit</button>
+    </form>
+
+    <h2>Reflected output:</h2>
+    <div id="output">
+      <!-- intentionally vulnerable rendering -->
+      {{ user_msg|safe }}
+    </div>
+
+    <hr/>
+    <p>Hint: try <code>?msg=&lt;script&gt;alert('xss')&lt;/script&gt;</code></p>
+  </body>
+</html>
