@@ -8,20 +8,22 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [selectedLab, setSelectedLab] = useState(null);
 
+  // key used to force Dashboard to refetch progress
+  const [progressRefreshKey, setProgressRefreshKey] = useState(0);
+
   useEffect(() => {
-  const unsub = onAuthStateChanged(auth, (u) => {
-    setUser(u);
-    if (u) {
-      console.log("SIGNED IN UID:", u.uid);
-      // expose for quick console checks
-      window.__FIREBASE_UID = u.uid;
-    } else {
-      console.log("SIGNED OUT");
-      window.__FIREBASE_UID = null;
-    }
-  });
-  return () => unsub();
-}, []);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        console.log("SIGNED IN UID:", u.uid);
+        window.__FIREBASE_UID = u.uid;
+      } else {
+        console.log("SIGNED OUT");
+        window.__FIREBASE_UID = null;
+      }
+    });
+    return () => unsub();
+  }, []);
 
   const handleLogin = async () => {
     try {
@@ -34,6 +36,11 @@ export default function App() {
   const handleLogout = async () => {
     await logout();
     setSelectedLab(null);
+  };
+
+  // callback passed to LabView — bump this to make Dashboard reload progress
+  const handleLabCompleted = () => {
+    setProgressRefreshKey((k) => k + 1);
   };
 
   if (!user) {
@@ -56,13 +63,16 @@ export default function App() {
         </div>
       </div>
 
-      {!selectedLab && <Dashboard onSelectLab={setSelectedLab} />}
+      {!selectedLab && (
+        <Dashboard onSelectLab={setSelectedLab} user={user} refreshKey={progressRefreshKey} />
+      )}
       {selectedLab && (
         <div>
           <button onClick={() => setSelectedLab(null)} style={{ marginBottom: 10 }}>
             ← Back to dashboard
           </button>
-           <LabView lab={selectedLab} user={user} />
+          {/* pass user and onCompleted callback to LabView */}
+          <LabView lab={selectedLab} user={user} onCompleted={handleLabCompleted} />
         </div>
       )}
     </div>

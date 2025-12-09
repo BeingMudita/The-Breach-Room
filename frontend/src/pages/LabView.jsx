@@ -1,51 +1,54 @@
 import React, { useState } from "react";
 import { getIdToken } from "../firebase";
 
-export default function LabView({ lab, user }) {
+export default function LabView({ lab, user, onCompleted }) {
   const [statusMsg, setStatusMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
   const mapLabUrlToHost = (url) => {
     if (!url) return "";
-    return url.replace("http://lab1:5000", "http://localhost:5001");
+    if (url.startsWith("http://lab1:5000")) return url.replace("http://lab1:5000", "http://localhost:5001");
+    if (url.startsWith("http://lab2:5000")) return url.replace("http://lab2:5000", "http://localhost:5002");
+    return url;
   };
 
   const iframeUrl = mapLabUrlToHost(lab.url);
 
   const markCompleted = async () => {
-  if (!user) {
-    setStatusMsg("You must be signed in.");
-    return;
-  }
-  setBusy(true);
-  setStatusMsg("");
-  try {
-    const idToken = await getIdToken();
-    const res = await fetch("http://localhost:8000/progress", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({
-        // user_id is optional; backend uses verified uid
-        lab_id: lab.id,
-        completed: true,
-      }),
-    });
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`HTTP ${res.status}: ${txt}`);
+    if (!user) {
+      setStatusMsg("You must be signed in.");
+      return;
     }
-    const data = await res.json();
-    setStatusMsg("Progress saved ✅");
-  } catch (err) {
-    console.error("Save failed", err);
-    setStatusMsg("Save failed: " + (err.message || err));
-  } finally {
-    setBusy(false);
-  }
-};
+    setBusy(true);
+    setStatusMsg("");
+    try {
+      const idToken = await getIdToken();
+      const res = await fetch("http://localhost:8000/progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          lab_id: lab.id,
+          completed: true,
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status}: ${txt}`);
+      }
+      const data = await res.json();
+      setStatusMsg("Progress saved ✅");
+      // trigger parent to refresh progress list
+      if (typeof onCompleted === "function") onCompleted();
+    } catch (err) {
+      console.error("Save failed", err);
+      setStatusMsg("Save failed: " + (err.message || err));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div>

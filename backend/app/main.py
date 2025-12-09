@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException, Header, Request
 from pydantic import BaseModel
 from typing import List, Optional
 from app.labs_config import LABS
+from fastapi import Path
+
 
 # CORS
 from fastapi.middleware.cors import CORSMiddleware
@@ -114,5 +116,27 @@ async def progress(update: ProgressUpdate, request: Request, authorization: Opti
         }
         doc_ref.set(payload, merge=True)
         return {"status": "ok", "saved": payload, "uid": uid}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/progress/{user_id}")
+def get_progress(user_id: str = Path(..., description="UID to fetch progress for"),
+                 authorization: Optional[str] = Header(None)):
+    """
+    Return a map of lab_id -> { completed: bool, updated_at: timestamp }
+    Only allowed if the Authorization token verifies to the same uid (users may only read their own progress).
+    """
+    # verify token and that token uid matches the requested user_id
+    token_uid = verify_bearer_token(authorization)
+    if token_uid != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden: uid mismatch")
+
+    try:
+        doc_coll = db.collection("progress").document(user_id).collection("labs")
+        docs = doc_coll.stream()
+        result = {}
+        for d in docs:
+            result[d.id] = d.to_dict()
+        return {"status": "ok", "progress": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -20,7 +20,15 @@ services:
     # IMPORTANT: no external network access; keep it isolated (example)
     networks:
       - internal_net
-
+  lab2:
+    build:
+      context: ./labs/lab2_sqli
+      dockerfile: Dockerfile
+    container_name: lab2
+    ports:
+      - "5002:5000"
+    networks:
+      - internal_net
 networks:
   internal_net:
     driver: bridge
