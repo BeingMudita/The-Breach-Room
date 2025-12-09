@@ -1,22 +1,67 @@
-import React from "react";
+import React, { useState } from "react";
+import { getIdToken } from "../firebase";
 
-export default function LabView({ lab }) {
-  // lab.url comes from backend and is e.g. "http://lab1:5000"
-  // For the browser, we want to open the host-mapped port (we expose lab to host on 5001).
-  // We'll transform known internal URLs to host URLs:
+export default function LabView({ lab, user }) {
+  const [statusMsg, setStatusMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+
   const mapLabUrlToHost = (url) => {
-    // Simple mapping for lab1 -> localhost:5001
     if (!url) return "";
-    // naive: replace docker service hostname "lab1:5000" with "localhost:5001"
     return url.replace("http://lab1:5000", "http://localhost:5001");
   };
 
   const iframeUrl = mapLabUrlToHost(lab.url);
 
+  const markCompleted = async () => {
+  if (!user) {
+    setStatusMsg("You must be signed in.");
+    return;
+  }
+  setBusy(true);
+  setStatusMsg("");
+  try {
+    const idToken = await getIdToken();
+    const res = await fetch("http://localhost:8000/progress", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        // user_id is optional; backend uses verified uid
+        lab_id: lab.id,
+        completed: true,
+      }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`HTTP ${res.status}: ${txt}`);
+    }
+    const data = await res.json();
+    setStatusMsg("Progress saved ✅");
+  } catch (err) {
+    console.error("Save failed", err);
+    setStatusMsg("Save failed: " + (err.message || err));
+  } finally {
+    setBusy(false);
+  }
+};
+
   return (
     <div>
       <h2>{lab.title}</h2>
       <p>{lab.description}</p>
+
+      <div style={{ marginBottom: 8 }}>
+        <button onClick={() => window.open(iframeUrl, "_blank")} style={{ marginRight: 8 }}>
+          Open lab in new tab
+        </button>
+        <button onClick={markCompleted} disabled={busy}>
+          {busy ? "Saving..." : "Mark completed"}
+        </button>
+        <span style={{ marginLeft: 12 }}>{statusMsg}</span>
+      </div>
+
       <div style={{ border: "1px solid #ccc", borderRadius: 6, overflow: "hidden", height: 520 }}>
         <iframe
           title={lab.id}
@@ -24,9 +69,6 @@ export default function LabView({ lab }) {
           style={{ width: "100%", height: "100%", border: "none" }}
         />
       </div>
-      <p style={{ marginTop: 8 }}>
-        Tip: open the lab in a new tab if the iframe blocks alerts: <a href={iframeUrl} target="_blank" rel="noreferrer">{iframeUrl}</a>
-      </p>
     </div>
   );
 }

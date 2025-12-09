@@ -7,6 +7,8 @@ services:
       - "8000:8000"
     depends_on:
       - lab1
+    volumes:
+      - ./backend/serviceAccountKey.json:/app/serviceAccountKey.json:ro
 
   lab1:
     build:
