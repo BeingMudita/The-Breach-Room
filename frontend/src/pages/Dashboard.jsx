@@ -26,7 +26,6 @@ export default function Dashboard({ onSelectLab, user, refreshKey }) {
   }, []);
 
   useEffect(() => {
-    // Fetch progress when user is available OR when refreshKey changes
     async function loadProgress() {
       if (!user) return;
       setLoadingProg(true);
@@ -40,6 +39,7 @@ export default function Dashboard({ onSelectLab, user, refreshKey }) {
         setProgress(data.progress || {});
       } catch (e) {
         console.error("Failed to load progress", e);
+        setProgress({}); // fallback
       } finally {
         setLoadingProg(false);
       }
@@ -53,42 +53,26 @@ export default function Dashboard({ onSelectLab, user, refreshKey }) {
   return (
     <div>
       <h2>Available Labs</h2>
-      <ul style={{ listStyle: "none", padding: 0 }}>
+
+      <div className="labs-grid">
         {labs.map((lab) => {
           const labProg = progress[lab.id];
-          const completed = labProg ? labProg.completed : false;
+          const completed = labProg ? !!labProg.completed : false;
+
           return (
-            <li key={lab.id} style={{ marginBottom: 12, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <h3 style={{ margin: 0 }}>{lab.title}</h3>
-                  <p style={{ marginTop: 6 }}>{lab.description}</p>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  {loadingProg ? (
-                    <div>Loading status…</div>
-                  ) : (
-                    <>
-                      {completed ? (
-                        <span style={{ display: "inline-block", padding: "6px 10px", background: "#e6ffed", borderRadius: 6, color: "#04660d" }}>
-                          ✅ Completed
-                        </span>
-                      ) : (
-                        <span style={{ display: "inline-block", padding: "6px 10px", background: "#fff3cd", borderRadius: 6, color: "#6a4a00" }}>
-                          ⏳ Not completed
-                        </span>
-                      )}
-                      <div style={{ marginTop: 8 }}>
-                        <button onClick={() => onSelectLab(lab)}>Launch lab</button>
-                      </div>
-                    </>
-                  )}
+            <div className="card lab-card" key={lab.id}>
+              <h3>{lab.title}</h3>
+              <p>{lab.description}</p>
+              <div style={{ marginTop: 10 }}>
+                {completed ? <span>✅ Completed</span> : <span>⏳ Not completed</span>}
+                <div style={{ marginTop: 8 }}>
+                  <button onClick={() => onSelectLab(lab)}>Launch lab</button>
                 </div>
               </div>
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 }

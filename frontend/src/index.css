@@ -1,3 +1,124 @@
-body { margin: 0; padding: 0; background: #fafafa; color: #111; }
-.app-root { max-width: 960px; margin: 24px auto; }
-button { cursor: pointer; padding: 6px 10px; border-radius: 6px; }
+/* frontend/src/index.css - The Breach Room theme */
+:root{
+  --bg: #F8F5FE;        /* Lilac white */
+  --accent: #A599C9;    /* Soft violet */
+  --title-green: #355e3b; /* Hunter green for main title */
+  --muted: #6b6b6b;
+  --card: #ffffff;
+  --radius: 12px;
+}
+
+html,body,#root{height:100%}
+body{
+  margin:0;
+  background: var(--bg);
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color:#111;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.app-root{
+  max-width:1100px;
+  margin:28px auto;
+  padding:20px;
+}
+
+.header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.brand .title {
+  font-family: "Boldonse", "Poppins", serif;
+  color: var(--title-green);
+  font-size: 36px;
+  letter-spacing: 0.4px;
+}
+
+.brand .subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top:4px;
+}
+
+.stats-bar {
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.streak-badge {
+  background: linear-gradient(180deg, rgba(53,94,59,0.12), rgba(53,94,59,0.06));
+  color: var(--title-green);
+  padding:6px 10px;
+  border-radius: 999px;
+  font-weight:600;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(53,94,59,0.08);
+}
+
+.xp-container {
+  background: linear-gradient(90deg, rgba(165,153,201,0.18), rgba(248,245,254,0.6));
+  border-radius:999px;
+  padding:6px;
+  min-width:220px;
+}
+
+.xp-fill {
+  height:12px;
+  border-radius:999px;
+  background: linear-gradient(90deg, #A599C9, #8f7fc0);
+  width:0%;
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px rgba(18, 20, 40, 0.04);
+  padding:14px;
+  margin-bottom:12px;
+}
+
+/* buttons */
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+button.secondary {
+  background: transparent;
+  color: var(--title-green);
+  border: 1px solid rgba(53,94,59,0.08);
+}
+
+/* dashboard layout */
+.labs-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+.lab-card h3 { margin:0; }
+.lab-card p { margin:6px 0 0 0; color:var(--muted); }
+
+/* small responsive tweaks */
+@media (max-width:720px) {
+  .brand .title { font-size:28px; }
+  .xp-container { min-width:160px; }
+}
