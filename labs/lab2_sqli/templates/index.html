@@ -1,19 +1,66 @@
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"><title>Lab 2 — SQL Injection (Login)</title></head>
+  <head>
+    <meta charset="utf-8">
+    <title>Lab 2 — SQL Injection (Login)</title>
+    <style>
+      body{font-family:Inter, Arial;max-width:900px;margin:24px auto;padding:8px}
+      pre{background:#f6f8fa;padding:12px;border-radius:6px;overflow:auto}
+      .hint{background:#fff3cd;padding:10px;border-radius:6px;margin-top:10px}
+      .ok{background:#e6ffed;padding:10px;border-radius:6px;margin-top:10px}
+    </style>
+  </head>
   <body>
     <h1>Lab 2 — SQL Injection (Login)</h1>
-    <p>Try to login. Hint: the valid credentials are <code>user / pass123</code>. Or try bypass.</p>
+
+    <p>
+      This lab shows how building SQL queries by concatenating user input can let attackers bypass authentication.
+      You can toggle between the vulnerable demo and the safe fixed demo.
+    </p>
+
+    <p>
+      <a href="/">Vulnerable demo</a> • <a href="/fixed">Fixed demo (safe)</a>
+    </p>
+
     <form method="post" action="/">
       <label>Username: <input type="text" name="username" /></label><br/>
       <label>Password: <input type="text" name="password" /></label><br/>
-      <button type="submit">Login</button>
+      <button type="submit">Login (vuln)</button>
+      &nbsp;
+      <button type="button" onclick="location.href='/fixed'">Open fixed</button>
     </form>
 
     <h2>Result:</h2>
     <div id="result">{{ message }}</div>
 
+    {% if mode == "vuln" %}
+      <div class="hint">
+        <strong>Hint:</strong> Try username: <code>anything' OR '1'='1</code> (or put it in password).
+      </div>
+      <div style="margin-top:12px">
+        <strong>Why it's vulnerable:</strong>
+        The application builds SQL with string interpolation so attacker-supplied quotes can change the logic of the WHERE clause.
+      </div>
+      <pre>
+VULNERABLE (simplified):
+query = f"SELECT * FROM users WHERE username = '{uname}' AND password = '{pwd}'"
+# If uname = "anything' OR '1'='1", the WHERE clause becomes always true.
+      </pre>
+    {% else %}
+      <div class="ok">
+        <strong>Fixed behavior:</strong> This version uses parameterized SQL queries so user input cannot alter query structure.
+      </div>
+      <div style="margin-top:12px">
+        <strong>How the fix works:</strong>
+        Use database parameter binding (e.g., <code>cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (uname, pwd))</code>) — the driver treats user values as data only.
+      </div>
+      <pre>
+SAFE (simplified):
+c.execute("SELECT * FROM users WHERE username = ? AND password = ?", (uname, pwd))
+      </pre>
+    {% endif %}
+
     <hr/>
-    <p>Hint: try <code>username=anything' OR '1'='1</code></p>
+    <p><em>Note:</em> This lab is local and intentionally vulnerable for learning purposes only.</p>
   </body>
 </html>

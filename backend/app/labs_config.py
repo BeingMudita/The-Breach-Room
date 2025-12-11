@@ -1,19 +1,29 @@
 # backend/app/labs_config.py
 """
-Simple static lab registry.
-In future we will replace this with dynamic lab lifecycle (spin up / tear down).
+Registry of labs. Each lab contains:
+ - id: unique id used by frontend/backend
+ - title: short title
+ - description: user-friendly description shown in the dashboard
+ - url: internal docker service url (the frontend maps these to host ports)
 """
+
 LABS = [
     {
         "id": "lab1_xss",
-        "title": "Reflected XSS - Comment Box",
-        "description": "Reflected XSS in a comment box. Learn about input validation & escaping.",
-        "url": "http://lab1:5000"   # docker-compose service name (lab1)
+        "title": "Reflected XSS — Comment Box",
+        "description": (
+            "Learn how input reflected into a page can execute JavaScript (Reflected XSS). "
+            "Explore the vulnerable demo and the fixed demo which shows proper escaping."
+        ),
+        "url": "http://lab1:5000"
     },
     {
         "id": "lab2_sqli",
         "title": "SQL Injection — Login Bypass",
-        "description": "A vulnerable login form demonstrating classic SQL injection.",
+        "description": (
+            "Classic SQL injection in a login form: learn how unsafe string-built SQL can be bypassed. "
+            "Compare the vulnerable flow with the parameterized (safe) version."
+        ),
         "url": "http://lab2:5000"
     }
 ]

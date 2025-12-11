@@ -1,22 +1,76 @@
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"><title>Lab 1 — Reflected XSS</title></head>
+  <head>
+    <meta charset="utf-8">
+    <title>Lab 1 — Reflected XSS</title>
+    <style>
+      body{font-family:Inter, Arial;max-width:900px;margin:24px auto;padding:8px}
+      pre{background:#f6f8fa;padding:12px;border-radius:6px;overflow:auto}
+      .hint{background:#fff3cd;padding:10px;border-radius:6px;margin-top:10px}
+      .ok{background:#e6ffed;padding:10px;border-radius:6px;margin-top:10px}
+    </style>
+  </head>
   <body>
-    <h1>Reflected XSS — Comment Box</h1>
-    <p>Enter a message in the URL param <code>?msg=</code> to see it reflected.</p>
+    <h1>Lab 1 — Reflected XSS (Comment Box)</h1>
+
+    <p>
+      This page demonstrates a <strong>reflected XSS</strong> vulnerability. There are two modes:
+      <strong>Vulnerable demo</strong> and <strong>Fixed (safe) demo</strong>.
+    </p>
+
+    <p>
+      <a href="/">Vulnerable demo</a> • <a href="/fixed">Fixed demo (safe)</a>
+    </p>
 
     <form action="/" method="get">
-      <input type="text" name="msg" placeholder="Type a message">
-      <button type="submit">Submit</button>
+      <label>Type a message (try HTML/JS): <input type="text" name="msg" style="width:60%" /></label>
+      <button type="submit">Submit (vuln)</button>
+      &nbsp;
+      <button type="button" onclick="location.href='/fixed?msg='+encodeURIComponent(document.querySelector('[name=msg]').value)">
+        Submit (open fixed)
+      </button>
     </form>
 
-    <h2>Reflected output:</h2>
-    <div id="output">
+    <h2>Reflected output (vulnerable):</h2>
+    <div id="output-vuln" style="border:1px solid #ddd;padding:10px;border-radius:6px;">
       <!-- intentionally vulnerable rendering -->
-      {{ user_msg|safe }}
+      {{ user_msg_vulnerable|safe }}
     </div>
 
+    <h2>Reflected output (fixed / escaped):</h2>
+    <div id="output-fixed" style="border:1px solid #ddd;padding:10px;border-radius:6px;">
+      {{ user_msg_safe }}
+    </div>
+
+    {% if mode == "vuln" %}
+      <div class="hint">
+        <strong>What you can try:</strong> In the vulnerable demo try:
+        <code>?msg=&lt;script&gt;alert('xss')&lt;/script&gt;</code>
+      </div>
+      <div style="margin-top:12px">
+        <strong>Why it is vulnerable:</strong> The vulnerable page renders the user input as raw HTML/JS. If input contains a script tag, the browser executes it.
+      </div>
+      <pre>
+Vulnerable rendering (simplified):
+return render_template("index.html", user_msg_vulnerable=Markup(msg))
+and template uses: {{ user_msg_vulnerable|safe }}
+      </pre>
+    {% else %}
+      <div class="ok">
+        <strong>Fixed behavior:</strong> The input is shown but escaped — browser will not execute scripts.
+      </div>
+      <div style="margin-top:12px">
+        <strong>How the fix works:</strong> escape user input (e.g., <code>html.escape()</code>) or rely on automatic template escaping. Do not render untrusted strings as raw HTML.
+      </div>
+      <pre>
+Fixed rendering (simplified):
+safe_msg = html.escape(msg)
+return render_template("index.html", user_msg_safe=safe_msg)
+and template uses: {{ user_msg_safe }}
+      </pre>
+    {% endif %}
+
     <hr/>
-    <p>Hint: try <code>?msg=&lt;script&gt;alert('xss')&lt;/script&gt;</code></p>
+    <p><em>Note:</em> This lab is intentionally vulnerable for learning. Do not publish vulnerable code to public environments.</p>
   </body>
 </html>
